@@ -4,22 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Examen fisiopatología - Nuevo</title>
+    <link type="text/css" rel="stylesheet" href="resources/sheet.css" >
     <style>
-        /* Estilos CSS existentes de tu archivo */
         .moon-creaciones {
             position: absolute;
             top: 10px;
             right: 10px;
             font-size: 16px;
             font-weight: bold;
-             /* Añadimos flexbox para alinear el texto y la imagen */
             display: flex;
-            align-items: center; /* Centra verticalmente el texto y la imagen */
-            gap: 5px; /* Espacio entre el texto y la imagen */
+            align-items: center;
+            gap: 5px;
         }
          .moon-creaciones img {
-            height: 30px; /* Ajusta el tamaño del gato banana */
-            width: auto; /* Mantiene la proporción */
+            height: 30px;
+            width: auto;
         }
         .correcta {
             color: green;
@@ -27,13 +26,16 @@
         .incorrecta {
             color: red;
         }
-        /* Estilo para el GIF al finalizar el examen */
         .finished-exam-gif {
             display: block;
-            margin: 20px auto; /* Centra la imagen y añade espacio arriba y abajo */
-            max-width: 250px; /* Limita el ancho máximo del GIF */
-            height: auto; /* Mantiene la proporción */
+            margin: 20px auto;
+            max-width: 250px;
+            height: auto;
         }
+         #reiniciarExamenFinal {
+             display: none;
+             margin-top: 20px;
+         }
     </style>
 </head>
 <body>
@@ -45,20 +47,18 @@
     <div id="preguntas"></div>
     <button id="enviarRespuestas" style="display:none;">Enviar Respuestas</button>
     <div id="resultados"></div>
-    <button id="nuevoExamen" style="display:block;" onclick="generarNuevoExamen()">Generar Nuevo Examen</button>
+    <button id="nuevoExamen" style="display:block;">Generar Nuevo Examen</button>
+    <button id="reiniciarExamenFinal" onclick="reiniciarExamen()">Reiniciar Examen</button>
 
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
             let preguntasRespondidas = new Set();
             let preguntasSeleccionadas = [];
-             // Inicializa totalPreguntas a 0, se actualizará al cargar Hoja 1.html
             let totalPreguntas = 0;
             let preguntasPorExamen = 42;
-            // Asegúrate que estos capítulos sean los correctos según tu Hoja 1.html
             let capitulos = ["1", "2", "3", "4", "5", "6", "9", "10", "11", "12", "21", "22", "23", "24", "36", "37", "39", "41"];
             let preguntasPorCapitulo = {};
 
-            // Función para cargar las preguntas desde el archivo HTML
             async function cargarPreguntas() {
                 try {
                     let response = await fetch('Hoja 1.html');
@@ -75,9 +75,8 @@
                     }
 
                     filas.forEach((fila, index) => {
-                        if (index === 0) return; // Saltar encabezado
+                        if (index === 0) return;
                         let celdas = fila.querySelectorAll("td");
-                         // Asegurarse de que hay suficientes celdas
                         if (celdas.length > 6) {
                             let capitulo = celdas[0].innerText.trim();
                             let pregunta = celdas[1].innerText.trim();
@@ -89,10 +88,8 @@
                             ];
                             let respuestaCorrecta = celdas[6].innerText.trim();
 
-                            // Limpieza básica de las opciones y respuesta correcta
                             opciones = opciones.map(opcion => opcion.replace(/[\r\n]+/g, '').trim());
                             respuestaCorrecta = respuestaCorrecta.replace(/[\r\n]+/g, '').trim();
-
 
                             if (capitulos.includes(capitulo)) {
                                 if (!preguntasPorCapitulo[capitulo]) {
@@ -106,7 +103,7 @@
                                 });
                             }
                         } else {
-                            console.warn(`Fila ${index + 1} ignorada: número insuficiente de celdas.`);
+                            console.warn(`Fila ${index + 1} ignorada.`);
                         }
                     });
 
@@ -115,11 +112,12 @@
                        document.getElementById("preguntas").innerHTML = `<h2>No se cargaron preguntas con los capítulos especificados. Revisa Hoja 1.html y la lista de capítulos.</h2>`;
                        document.getElementById("enviarRespuestas").style.display = "none";
                        document.getElementById("nuevoExamen").style.display = "none";
-                       console.warn('No se cargaron preguntas después de filtrar por capítulo.');
+                       document.getElementById("reiniciarExamenFinal").style.display = "none";
                     } else {
-                        totalPreguntas = totalPreguntasCargadas; // Ajusta el total al número real cargado
+                        totalPreguntas = totalPreguntasCargadas;
                         console.log(`Total de preguntas cargadas y filtradas: ${totalPreguntas}`);
-                        generarNuevoExamen(); // Genera el primer examen
+                         document.getElementById("nuevoExamen").style.display = "block";
+                         document.getElementById("preguntas").innerHTML = `<h2>Haz click en "Generar Nuevo Examen" para empezar.</h2>`;
                     }
 
                 } catch (error) {
@@ -127,6 +125,7 @@
                     document.getElementById("preguntas").innerHTML = `<h2>Error al cargar las preguntas: ${error.message}</h2>`;
                     document.getElementById("enviarRespuestas").style.display = "none";
                     document.getElementById("nuevoExamen").style.display = "none";
+                    document.getElementById("reiniciarExamenFinal").style.display = "none";
                 }
             }
 
@@ -135,17 +134,15 @@
                 let disponibles = Object.values(preguntasPorCapitulo).flat().filter(p => !preguntasRespondidas.has(p.pregunta));
 
                 if (disponibles.length === 0) {
-                    // Si no hay preguntas disponibles, muestra el mensaje final con el GIF
                     mostrarMensajeFinal();
-                    return;
+                    return false;
                 }
 
                 let seleccionadas = disponibles.sort(() => 0.5 - Math.random()).slice(0, preguntasPorExamen);
                 preguntasSeleccionadas.push(...seleccionadas);
                 seleccionadas.forEach(p => preguntasRespondidas.add(p.pregunta));
 
-                document.getElementById("enviarRespuestas").style.display = "block";
-                document.getElementById("nuevoExamen").style.display = "none";
+                 return true;
             }
 
             function mostrarPreguntas() {
@@ -154,9 +151,8 @@
                 preguntasSeleccionadas.forEach((pregunta, index) => {
                     let div = document.createElement("div");
                     let opcionesHTML = pregunta.opciones.map((opcion, i) => {
-                         // Limpiar opción antes de usar en el value y en el texto mostrado
                         let opcionValue = opcion.replace(/'/g, "&#039;").replace(/"/g, "&quot;").replace(/[\r\n]+/g, '').trim();
-                        let opcionTexto = opcion.replace(/[\r\n]+/g, '').trim(); // Limpia solo el texto mostrado
+                        let opcionTexto = opcion.replace(/[\r\n]+/g, '').trim();
                          return `<label><input type='radio' name='pregunta${index}' value='${opcionValue}'> ${opcionTexto}</label><br>`;
                     }).join('');
 
@@ -167,35 +163,29 @@
                     contenedor.appendChild(div);
                 });
                 document.getElementById("enviarRespuestas").style.display = "block";
-                 // Oculta el botón de "Generar Nuevo Examen" mientras se responde
-                document.getElementById("nuevoExamen").style.display = "none";
+                 document.getElementById("nuevoExamen").style.display = "none";
+                 document.getElementById("reiniciarExamenFinal").style.display = "none";
             }
 
             function evaluarRespuestas() {
                 let correctas = 0;
                 preguntasSeleccionadas.forEach((pregunta, index) => {
-                    // Limpia la respuesta correcta antes de comparar
                     let respuestaCorrectaLimpia = pregunta.respuestaCorrecta.replace(/[\r\n]+/g, '').trim();
-
                     let respuestaUsuarioInput = document.querySelector(`input[name='pregunta${index}']:checked`);
-                    // Limpia el valor de la respuesta del usuario antes de comparar
                     let respuestaUsuarioLimpia = respuestaUsuarioInput ? respuestaUsuarioInput.value.replace(/[\r\n]+/g, '').trim() : null;
-
-
                     let opcionesLabel = document.querySelectorAll(`input[name='pregunta${index}']`);
+
                     opcionesLabel.forEach(input => {
                         let label = input.parentElement;
-                        // Limpia el valor de la opción antes de comparar
                         let opcionValueLimpia = input.value.replace(/[\r\n]+/g, '').trim();
 
                         if (opcionValueLimpia === respuestaCorrectaLimpia) {
                             label.classList.add('correcta');
                         }
-                         // Verifica que el usuario haya respondido antes de marcar incorrecta
                         if (respuestaUsuarioLimpia !== null && opcionValueLimpia === respuestaUsuarioLimpia && opcionValueLimpia !== respuestaCorrectaLimpia) {
                             label.classList.add('incorrecta');
                         }
-                        input.disabled = true; // Deshabilita los botones después de evaluar
+                        input.disabled = true;
                     });
 
                     if (respuestaUsuarioLimpia !== null && respuestaUsuarioLimpia === respuestaCorrectaLimpia) {
@@ -204,14 +194,14 @@
                 });
 
                 mostrarResultados(correctas);
-                document.getElementById("enviarRespuestas").style.display = "none"; // Oculta el botón después de evaluar
+                document.getElementById("enviarRespuestas").style.display = "none";
 
-                let preguntasDisponiblesRestantes = Object.values(preguntasPorCapitulo).flat().filter(p => !preguntasRespondidas.has(p.pregunta)).length;
+                let preguntasDisponiblesRestantes = Object.values(preguntasPorCapitulo).flat().length - preguntasRespondidas.size;
+
                 if (preguntasDisponiblesRestantes > 0) {
                     document.getElementById("nuevoExamen").innerText = "Siguiente Ronda";
                     document.getElementById("nuevoExamen").style.display = "block";
                 } else {
-                    // Muestra el mensaje final con el GIF cuando se agotan las preguntas
                     mostrarMensajeFinal();
                 }
             }
@@ -221,72 +211,38 @@
                 resultadoDiv.innerHTML = `<p>Respuestas correctas en esta ronda: ${correctas}/${preguntasSeleccionadas.length}</p>`;
             }
 
-             // Función para mostrar el mensaje final con el GIF del gato bailando
-            function mostrarMensajeFinal() {
+             function mostrarMensajeFinal() {
                 document.getElementById("preguntas").innerHTML = `
-                     <h2>¡Enhorabuena! Respondiste todas las preguntas disponibles. ¿Quieres empezar de nuevo?</h2>
+                     <h2>¡Enhorabuena! Respondiste todas las preguntas disponibles.</h2>
                      <img src="assets/catdancing.gif" alt="GIF de felicitación" class="finished-exam-gif">
-                 `; // Usa la ruta y nombre de tu GIF de gato bailando
-                 document.getElementById("resultados").innerHTML = ""; // Limpia los resultados de la última ronda
+                 `; // Gato bailando al finalizar (ruta asumiendo assets/catdancing.gif)
+                 document.getElementById("resultados").innerHTML = "";
                  document.getElementById("enviarRespuestas").style.display = "none";
-                 document.getElementById("nuevoExamen").innerText = "Reiniciar Examen";
-                 document.getElementById("nuevoExamen").style.display = "block";
+                 document.getElementById("nuevoExamen").style.display = "none";
+                 document.getElementById("reiniciarExamenFinal").style.display = "block";
             }
 
-
-            window.generarNuevoExamen = function () {
-                let preguntasDisponiblesRestantes = Object.values(preguntasPorCapitulo).flat().filter(p => !preguntasRespondidas.has(p.pregunta)).length;
-
-                if (preguntasDisponiblesRestantes === 0 && Object.values(preguntasPorCapitulo).flat().length > 0) {
-                     // Si ya no hay preguntas disponibles pero sí se cargaron preguntas inicialmente
-                     mostrarMensajeFinal();
-                } else if (Object.values(preguntasPorCapitulo).flat().length === 0){
-                    // Esto ocurre si no se cargó ninguna pregunta inicialmente
-                    document.getElementById("preguntas").innerHTML = `<h2>No se pudieron cargar las preguntas. Por favor, revisa el archivo Hoja 1.html.</h2>`;
-                    document.getElementById("enviarRespuestas").style.display = "none";
-                    document.getElementById("nuevoExamen").style.display = "none";
+            document.getElementById("nuevoExamen").addEventListener("click", function() {
+                let hayPreguntasParaSeleccionar = seleccionarPreguntas();
+                if (hayPreguntasParaSeleccionar) {
+                    mostrarPreguntas();
+                    document.getElementById("resultados").innerHTML = "";
                 }
-                 else {
-                    console.log("Generando nuevo set de preguntas...");
-                    seleccionarPreguntas();
-                    // Verifica si se seleccionaron preguntas antes de mostrarlas
-                    if (preguntasSeleccionadas.length > 0) {
-                        mostrarPreguntas();
-                        document.getElementById("resultados").innerHTML = ""; // Limpia los resultados anteriores
-                         // Asegura que el botón de "Enviar Respuestas" esté visible para la nueva ronda
-                        document.getElementById("enviarRespuestas").style.display = "block";
-                        document.getElementById("nuevoExamen").style.display = "none"; // Oculta el botón de "Generar Nuevo Examen"
-                    } else {
-                         // Esto solo pasaría si no hay suficientes preguntas no respondidas para una ronda completa
-                         // O si hay algún problema lógico. Aquí mostramos el mensaje final.
-                         mostrarMensajeFinal();
-                    }
-                }
+            });
+
+            window.reiniciarExamen = function () {
+                preguntasRespondidas.clear();
+                document.getElementById("resultados").innerHTML = "";
+                document.getElementById("preguntas").innerHTML = "";
+                document.getElementById("reiniciarExamenFinal").style.display = "none";
+                 document.getElementById("nuevoExamen").innerText = "Generar Nuevo Examen";
+                 document.getElementById("nuevoExamen").style.display = "block";
+
+                 document.getElementById("preguntas").innerHTML = `<h2>Haz click en "Generar Nuevo Examen" para empezar de nuevo.</h2>`;
             };
 
             document.getElementById("enviarRespuestas").addEventListener("click", evaluarRespuestas);
 
-            window.reiniciarExamen = function () {
-                preguntasRespondidas.clear(); // Limpia el set de preguntas respondidas
-                document.getElementById("resultados").innerHTML = ""; // Limpia los resultados
-                // Limpia el contenido actual de las preguntas
-                document.getElementById("preguntas").innerHTML = "";
-                console.log("Reiniciando examen...");
-
-                // Vuelve a cargar las preguntas y genera el primer set
-                 if (Object.values(preguntasPorCapitulo).flat().length > 0) {
-                     generarNuevoExamen(); // Genera el primer set del examen reiniciado
-                     document.getElementById("nuevoExamen").innerText = "Generar Nuevo Examen"; // Restaura el texto del botón
-                 } else {
-                     // Si no se cargaron preguntas al inicio, muestra el mensaje de error
-                     document.getElementById("preguntas").innerHTML = `<h2>No se pudieron cargar las preguntas para reiniciar. Por favor, revisa el archivo Hoja 1.html.</h2>`;
-                     document.getElementById("enviarRespuestas").style.display = "none";
-                     document.getElementById("nuevoExamen").style.display = "none";
-                 }
-            };
-
-
-            // Carga las preguntas al iniciar la página
             cargarPreguntas();
         });
     </script>
