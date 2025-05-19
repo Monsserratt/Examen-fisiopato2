@@ -6,6 +6,9 @@
     <title>Examen fisiopatología - Nuevo</title>
     <link type="text/css" rel="stylesheet" href="resources/sheet.css" >
    <style>
+         body {
+            padding-top: 60px; /* Ajusta este valor según sea necesario para que no se solape */
+        }
         /* Estilo para el título principal */
         h1 {
             font-size: 24px; /* Ajusta este valor (px) para cambiar el tamaño. Menor número = más pequeño. */
@@ -217,7 +220,7 @@
 
              function mostrarMensajeFinal() {
                 document.getElementById("preguntas").innerHTML = `
-                     <h2>¡Enhorabuena! Respondiste todas las preguntas disponibles.</h2>
+                     <h2>¡Enhorabuena! Respondiste todas las preguntas disponibles. /celebra en español españa</h2>
                      <img src="assets/catdancing.gif" alt="GIF de felicitación" class="finished-exam-gif">
                  `; // Gato bailando al finalizar (ruta asumiendo assets/catdancing.gif)
                  document.getElementById("resultados").innerHTML = "";
